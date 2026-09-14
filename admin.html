@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin — Fakhrul APK</title><link rel="stylesheet" href="styles.css"></head>
+<body><header class="topbar"><a class="brand" href="index.html"><span class="logo">F</span> Fakhrul <span class="brand-accent">APK</span></a><a class="admin-link" href="index.html">View store</a></header>
+<main class="admin-wrap"><div class="admin-card"><span class="eyebrow">CONTENT MANAGER</span><h1>Add an app</h1>
+<p class="muted">This first version stores app data in your browser. For a live multi-user admin panel, connect a database/backend later.</p>
+<form id="appForm">
+<label>App name<input name="name" required></label>
+<label>Developer<input name="developer" required></label>
+<label>Category<select name="category"><option>Tools</option><option>Games</option><option>Education</option><option>Productivity</option><option>Entertainment</option></select></label>
+<label>Version<input name="version" value="1.0.0" required></label>
+<label>Size<input name="size" placeholder="25 MB" required></label>
+<label>Android requirement<input name="android" value="Android 7.0+" required></label>
+<label>Icon URL<input name="icon" placeholder="https://..."></label>
+<label>Description<textarea name="description" required></textarea></label>
+<label>APK URL<input name="apk" placeholder="https://your-host/app.apk" required></label>
+<button class="primary" type="submit">Add app to store</button>
+</form></div>
+<div class="admin-card"><h2>Current apps</h2><div id="adminList"></div></div></main>
+<script src="apps.js"></script><script src="admin.js"></script></body></html>

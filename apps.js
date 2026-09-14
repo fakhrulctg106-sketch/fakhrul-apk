@@ -1,0 +1,6 @@
+window.DEFAULT_APPS = [
+ {id:"notepro",name:"NotePro",developer:"Fakhrul APK Labs",category:"Productivity",version:"2.4.1",size:"18 MB",android:"Android 8.0+",icon:"assets/icon-note.svg",description:"A clean, fast notes app for everyday ideas, lists and reminders.",apk:"#"},
+ {id:"learnmate",name:"LearnMate",developer:"Fakhrul APK Labs",category:"Education",version:"1.8.0",size:"32 MB",android:"Android 7.0+",icon:"assets/icon-learn.svg",description:"Study smarter with organized lessons, quick revision and practice tools.",apk:"#"},
+ {id:"pixelrush",name:"Pixel Rush",developer:"Indie Studio",category:"Games",version:"1.2.6",size:"86 MB",android:"Android 9.0+",icon:"assets/icon-game.svg",description:"A fast arcade challenge built for short, addictive play sessions.",apk:"#"},
+ {id:"toolbox",name:"Smart Toolbox",developer:"Fakhrul APK Labs",category:"Tools",version:"3.0.2",size:"14 MB",android:"Android 8.0+",icon:"assets/icon-tool.svg",description:"Useful everyday utilities collected in one lightweight Android app.",apk:"#"}
+];
