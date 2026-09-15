@@ -17,6 +17,22 @@ function loadApps() {
     if (!Array.isArray(custom)) {
       custom = [];
     }
+
+    // পুরোনো ও নতুন icon field একসাথে ঠিক করা
+    custom = custom.map(app => ({
+      ...app,
+
+      iconUrl:
+        app.iconUrl ||
+        app.icon ||
+        '',
+
+      apkUrl:
+        app.apkUrl ||
+        app.apk ||
+        ''
+    }));
+
   } catch (error) {
     console.error('Could not load apps:', error);
     custom = [];
@@ -30,17 +46,49 @@ function loadApps() {
 
 function saveApps() {
   try {
-    localStorage.setItem(key, JSON.stringify(custom));
 
-    // Verify that the data was actually saved
+    // Save করার আগে icon/apk field ঠিক করা
+    custom = custom.map(app => ({
+      ...app,
+
+      iconUrl:
+        app.iconUrl ||
+        app.icon ||
+        '',
+
+      apkUrl:
+        app.apkUrl ||
+        app.apk ||
+        ''
+    }));
+
+    localStorage.setItem(
+      key,
+      JSON.stringify(custom)
+    );
+
+    // আবার পড়ে নিশ্চিত হওয়া
     const check = JSON.parse(
       localStorage.getItem(key) || '[]'
     );
 
-    return Array.isArray(check);
+    if (!Array.isArray(check)) {
+      throw new Error('Saved data is not an array');
+    }
+
+    return true;
+
   } catch (error) {
-    console.error('Could not save apps:', error);
-    alert('App data could not be saved.');
+
+    console.error(
+      'Could not save apps:',
+      error
+    );
+
+    alert(
+      'App data could not be saved.'
+    );
+
     return false;
   }
 }
@@ -51,13 +99,17 @@ function saveApps() {
 // =========================
 
 function esc(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c => ({
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  }[c]));
+
+  return String(s ?? '').replace(
+    /[&<>"']/g,
+    c => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#039;'
+    }[c])
+  );
 }
 
 
@@ -67,29 +119,46 @@ function esc(s) {
 
 function draw() {
 
-  const el = document.getElementById('appsList');
+  const el =
+    document.getElementById('appsList');
 
   if (!el) return;
 
+
   if (!custom.length) {
+
     el.innerHTML =
       '<p class="empty">No custom apps yet.</p>';
+
     return;
   }
 
+
   el.innerHTML = custom.map(a => `
-    <div class="app-item ${editingId === a.id ? 'editing' : ''}">
+
+    <div class="app-item ${
+      editingId === a.id
+        ? 'editing'
+        : ''
+    }">
 
       <div class="app-name">
         ${esc(a.name || '')}
       </div>
 
       <div class="app-info">
+
         ${esc(a.developer || '')}
+
         •
+
         ${esc(a.category || '')}
+
         •
-        Version ${esc(a.version || '')}
+
+        Version
+        ${esc(a.version || '')}
+
       </div>
 
       <div class="app-actions">
@@ -97,20 +166,23 @@ function draw() {
         <button
           type="button"
           class="edit-btn"
-          onclick="editApp('${esc(a.id)}')">
+          onclick="editApp('${esc(a.id)}')"
+        >
           Edit
         </button>
 
         <button
           type="button"
           class="delete-btn"
-          onclick="removeApp('${esc(a.id)}')">
+          onclick="removeApp('${esc(a.id)}')"
+        >
           Delete
         </button>
 
       </div>
 
     </div>
+
   `).join('');
 }
 
@@ -121,7 +193,8 @@ function draw() {
 
 function getValue(id) {
 
-  const el = document.getElementById(id);
+  const el =
+    document.getElementById(id);
 
   if (!el) return '';
 
@@ -135,10 +208,13 @@ function getValue(id) {
 
 function setValue(id, value) {
 
-  const el = document.getElementById(id);
+  const el =
+    document.getElementById(id);
 
   if (el) {
-    el.value = value || '';
+
+    el.value =
+      value ?? '';
   }
 }
 
@@ -149,53 +225,118 @@ function setValue(id, value) {
 
 function editApp(id) {
 
-  const app = custom.find(a => a.id === id);
+  const app =
+    custom.find(a => a.id === id);
 
   if (!app) {
+
     alert('App not found.');
+
     return;
   }
+
 
   editingId = id;
 
 
-  setValue('appName', app.name);
-  setValue('developer', app.developer);
-  setValue('category', app.category || 'Tools');
-  setValue('version', app.version);
-  setValue('size', app.size);
-  setValue('android', app.android);
-  setValue('iconUrl', app.iconUrl || app.icon || '');
-  setValue('description', app.description);
-  setValue('apkUrl', app.apkUrl || app.apk || '');
+  setValue(
+    'appName',
+    app.name
+  );
+
+  setValue(
+    'developer',
+    app.developer
+  );
+
+  setValue(
+    'category',
+    app.category || 'Tools'
+  );
+
+  setValue(
+    'version',
+    app.version
+  );
+
+  setValue(
+    'size',
+    app.size
+  );
+
+  setValue(
+    'android',
+    app.android
+  );
+
+
+  // =========================
+  // ICON URL
+  // =========================
+
+  setValue(
+    'iconUrl',
+    app.iconUrl || app.icon || ''
+  );
+
+
+  setValue(
+    'description',
+    app.description
+  );
+
+
+  // =========================
+  // APK URL
+  // =========================
+
+  setValue(
+    'apkUrl',
+    app.apkUrl || app.apk || ''
+  );
 
 
   const title =
-    document.getElementById('formTitle');
+    document.getElementById(
+      'formTitle'
+    );
 
   if (title) {
-    title.textContent = 'Edit App';
+
+    title.textContent =
+      'Edit App';
   }
 
 
   const submitBtn =
-    document.getElementById('submitBtn');
+    document.getElementById(
+      'submitBtn'
+    );
 
   if (submitBtn) {
 
-    submitBtn.textContent = 'Update App';
+    submitBtn.textContent =
+      'Update App';
 
-    submitBtn.classList.remove('add-btn');
+    submitBtn.classList.remove(
+      'add-btn'
+    );
 
-    submitBtn.classList.add('update-btn');
+    submitBtn.classList.add(
+      'update-btn'
+    );
   }
 
 
   const cancelBtn =
-    document.getElementById('cancelBtn');
+    document.getElementById(
+      'cancelBtn'
+    );
 
   if (cancelBtn) {
-    cancelBtn.style.display = 'block';
+
+    cancelBtn.style.display =
+      'block';
   }
 
 
@@ -219,23 +360,32 @@ function cancelEdit() {
 
 
   const form =
-    document.getElementById('appForm');
+    document.getElementById(
+      'appForm'
+    );
 
   if (form) {
+
     form.reset();
   }
 
 
   const title =
-    document.getElementById('formTitle');
+    document.getElementById(
+      'formTitle'
+    );
 
   if (title) {
-    title.textContent = 'Add App';
+
+    title.textContent =
+      'Add App';
   }
 
 
   const submitBtn =
-    document.getElementById('submitBtn');
+    document.getElementById(
+      'submitBtn'
+    );
 
   if (submitBtn) {
 
@@ -253,10 +403,14 @@ function cancelEdit() {
 
 
   const cancelBtn =
-    document.getElementById('cancelBtn');
+    document.getElementById(
+      'cancelBtn'
+    );
 
   if (cancelBtn) {
-    cancelBtn.style.display = 'none';
+
+    cancelBtn.style.display =
+      'none';
   }
 
 
@@ -276,21 +430,31 @@ function removeApp(id) {
   if (!app) return;
 
 
-  if (!confirm(`Delete "${app.name}"?`)) {
+  if (
+    !confirm(
+      `Delete "${app.name}"?`
+    )
+  ) {
+
     return;
   }
 
 
   custom =
-    custom.filter(a => a.id !== id);
+    custom.filter(
+      a => a.id !== id
+    );
 
 
   saveApps();
 
 
   if (editingId === id) {
+
     cancelEdit();
+
   } else {
+
     draw();
   }
 }
@@ -305,9 +469,9 @@ function handleSubmit(e) {
   e.preventDefault();
 
 
-  // -------------------------
+  // =========================
   // UPDATE EXISTING APP
-  // -------------------------
+  // =========================
 
   if (editingId) {
 
@@ -319,7 +483,9 @@ function handleSubmit(e) {
 
     if (index === -1) {
 
-      alert('App not found.');
+      alert(
+        'App not found.'
+      );
 
       return;
     }
@@ -329,17 +495,56 @@ function handleSubmit(e) {
       custom[index];
 
 
+    // =========================
+    // GET ICON URL
+    // =========================
+
+    const iconInput =
+      getValue('iconUrl');
+
+
+    // যদি নতুন Icon URL দেওয়া হয়
+    // তাহলে নতুনটাই থাকবে।
+    // খালি থাকলে আগেরটা থাকবে।
+    const finalIcon =
+      iconInput ||
+      oldApp.iconUrl ||
+      oldApp.icon ||
+      '';
+
+
+    // =========================
+    // GET APK URL
+    // =========================
+
+    const apkInput =
+      getValue('apkUrl');
+
+
+    const finalApk =
+      apkInput ||
+      oldApp.apkUrl ||
+      oldApp.apk ||
+      '';
+
+
+    // =========================
+    // UPDATED APP
+    // =========================
+
     const updatedApp = {
 
       ...oldApp,
 
-      name: getValue('appName'),
+      name:
+        getValue('appName'),
 
       developer:
         getValue('developer'),
 
       category:
-        getValue('category') || 'Tools',
+        getValue('category') ||
+        'Tools',
 
       version:
         getValue('version'),
@@ -350,16 +555,24 @@ function handleSubmit(e) {
       android:
         getValue('android'),
 
+      // দুই field-এই একই URL রাখা হচ্ছে
       iconUrl:
-        getValue('iconUrl'),
+        finalIcon,
+
+      icon:
+        finalIcon,
 
       description:
         getValue('description'),
 
       apkUrl:
-        getValue('apkUrl'),
+        finalApk,
 
-      id: editingId
+      apk:
+        finalApk,
+
+      id:
+        editingId
     };
 
 
@@ -367,16 +580,24 @@ function handleSubmit(e) {
       updatedApp;
 
 
+    // =========================
+    // SAVE
+    // =========================
+
     const saved =
       saveApps();
 
 
     if (!saved) {
+
       return;
     }
 
 
-    // Verify updated value
+    // =========================
+    // VERIFY
+    // =========================
+
     loadApps();
 
 
@@ -386,13 +607,36 @@ function handleSubmit(e) {
       );
 
 
-    if (
-      !verify ||
-      verify.name !== updatedApp.name
-    ) {
+    if (!verify) {
 
       alert(
         'Update could not be verified.'
+      );
+
+      return;
+    }
+
+
+    if (
+      verify.name !==
+      updatedApp.name
+    ) {
+
+      alert(
+        'Name update could not be verified.'
+      );
+
+      return;
+    }
+
+
+    if (
+      verify.iconUrl !==
+      updatedApp.iconUrl
+    ) {
+
+      alert(
+        'Icon URL could not be saved.'
       );
 
       return;
@@ -410,9 +654,17 @@ function handleSubmit(e) {
   }
 
 
-  // -------------------------
+  // =========================
   // ADD NEW APP
-  // -------------------------
+  // =========================
+
+  const iconInput =
+    getValue('iconUrl');
+
+
+  const apkInput =
+    getValue('apkUrl');
+
 
   const newApp = {
 
@@ -423,7 +675,8 @@ function handleSubmit(e) {
       getValue('developer'),
 
     category:
-      getValue('category') || 'Tools',
+      getValue('category') ||
+      'Tools',
 
     version:
       getValue('version'),
@@ -434,21 +687,31 @@ function handleSubmit(e) {
     android:
       getValue('android'),
 
+    // Icon দুই জায়গায় রাখা
     iconUrl:
-      getValue('iconUrl'),
+      iconInput,
+
+    icon:
+      iconInput,
 
     description:
       getValue('description'),
 
+    // APK দুই জায়গায় রাখা
     apkUrl:
-      getValue('apkUrl'),
+      apkInput,
+
+    apk:
+      apkInput,
 
     id:
       'custom-' + Date.now()
   };
 
 
-  custom.unshift(newApp);
+  custom.unshift(
+    newApp
+  );
 
 
   const saved =
@@ -456,14 +719,18 @@ function handleSubmit(e) {
 
 
   if (!saved) {
+
     return;
   }
 
 
   const form =
-    document.getElementById('appForm');
+    document.getElementById(
+      'appForm'
+    );
 
   if (form) {
+
     form.reset();
   }
 
@@ -487,7 +754,9 @@ function initAdmin() {
 
 
   const form =
-    document.getElementById('appForm');
+    document.getElementById(
+      'appForm'
+    );
 
 
   if (form) {
@@ -500,7 +769,9 @@ function initAdmin() {
 
 
   const cancelBtn =
-    document.getElementById('cancelBtn');
+    document.getElementById(
+      'cancelBtn'
+    );
 
 
   if (cancelBtn) {
@@ -512,22 +783,28 @@ function initAdmin() {
   }
 
 
-  // Make functions available
-  // to inline HTML onclick buttons
+  // Inline button-এর জন্য
+  window.editApp =
+    editApp;
 
-  window.editApp = editApp;
+  window.removeApp =
+    removeApp;
 
-  window.removeApp = removeApp;
-
-  window.cancelEdit = cancelEdit;
+  window.cancelEdit =
+    cancelEdit;
 
 
   draw();
 }
 
 
+// =========================
+// START
+// =========================
+
 if (
-  document.readyState === 'loading'
+  document.readyState ===
+  'loading'
 ) {
 
   document.addEventListener(
@@ -538,4 +815,4 @@ if (
 } else {
 
   initAdmin();
-    }
+      }
