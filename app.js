@@ -1,21 +1,48 @@
-const stored = JSON.parse(
-  localStorage.getItem('fakhrulapk_apps') || '[]'
-);
+const STORAGE_KEY = 'fakhrulapk_apps';
 
-// Admin থেকে আসা নতুন app-এর field ঠিকভাবে মিলিয়ে নেওয়া
-const customApps = stored.map(a => ({
-  ...a,
+/* =========================
+   LOAD CUSTOM APPS
+========================= */
 
-  // Admin-এর iconUrl থাকলে সেটি ব্যবহার করবে
-  icon: a.iconUrl || a.icon || 'assets/icon-default.svg',
+function loadCustomApps() {
+  try {
+    const stored = JSON.parse(
+      localStorage.getItem(STORAGE_KEY) || '[]'
+    );
 
-  // Admin-এর apkUrl থাকলে সেটি ব্যবহার করবে
-  apk: a.apkUrl || a.apk || '#'
-}));
+    if (!Array.isArray(stored)) return [];
 
-const apps = [...customApps, ...DEFAULT_APPS];
+    return stored.map(a => ({
+      ...a,
+
+      // Admin-এর field → Store-এর field
+      icon: a.iconUrl || a.icon || 'assets/icon-default.svg',
+      apk: a.apkUrl || a.apk || '#'
+    }));
+  } catch (error) {
+    console.error('Could not load custom apps:', error);
+    return [];
+  }
+}
+
+
+/* =========================
+   ALL APPS
+========================= */
+
+const customApps = loadCustomApps();
+
+const apps = [
+  ...customApps,
+  ...(typeof DEFAULT_APPS !== 'undefined' ? DEFAULT_APPS : [])
+];
 
 let category = 'All';
+
+
+/* =========================
+   ESCAPE HTML
+========================= */
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({
@@ -27,14 +54,25 @@ function esc(s) {
   }[c]));
 }
 
+
+/* =========================
+   APP CARD
+========================= */
+
 function card(a) {
+
+  const icon =
+    a.icon ||
+    a.iconUrl ||
+    'assets/icon-default.svg';
+
   return `
     <article class="app-card">
 
       <img
-        src="${esc(a.icon || 'assets/icon-default.svg')}"
+        src="${esc(icon)}"
         alt="${esc(a.name || '')}"
-        onerror="this.src='assets/icon-default.svg'"
+        onerror="this.onerror=null;this.src='assets/icon-default.svg';"
       >
 
       <div class="app-info">
@@ -68,13 +106,28 @@ function card(a) {
   `;
 }
 
+
+/* =========================
+   STORE RENDER
+========================= */
+
 function render() {
+
+  // Admin থেকে latest data আবার নেওয়া
+  const latestCustomApps = loadCustomApps();
+
+  const latestApps = [
+    ...latestCustomApps,
+    ...(typeof DEFAULT_APPS !== 'undefined'
+      ? DEFAULT_APPS
+      : [])
+  ];
 
   const q = (
     document.getElementById('search')?.value || ''
-  ).toLowerCase();
+  ).toLowerCase().trim();
 
-  const list = apps.filter(a => {
+  const list = latestApps.filter(a => {
 
     const text = `
       ${a.name || ''}
@@ -96,31 +149,60 @@ function render() {
       list.map(card).join('') ||
       '<div class="empty">No apps found.</div>';
 
-    const count = document.getElementById('count');
+    const count =
+      document.getElementById('count');
 
     if (count) {
-      count.textContent = `${list.length} apps`;
+      count.textContent =
+        `${list.length} apps`;
     }
   }
 }
 
+
+/* =========================
+   SEARCH
+========================= */
+
 function filterApps() {
   render();
 }
+
+
+/* =========================
+   CATEGORY
+========================= */
 
 function setCategory(c) {
   category = c;
   render();
 }
 
+
+/* =========================
+   APP DETAIL
+========================= */
+
 function detail() {
 
   const id =
     new URLSearchParams(location.search).get('id');
 
-  const a = apps.find(x => x.id === id);
+  // সর্বশেষ localStorage data
+  const latestCustomApps = loadCustomApps();
 
-  const el = document.getElementById('detail');
+  const latestApps = [
+    ...latestCustomApps,
+    ...(typeof DEFAULT_APPS !== 'undefined'
+      ? DEFAULT_APPS
+      : [])
+  ];
+
+  const a =
+    latestApps.find(x => String(x.id) === String(id));
+
+  const el =
+    document.getElementById('detail');
 
   if (!el) return;
 
@@ -132,24 +214,40 @@ function detail() {
     return;
   }
 
+
+  /* =========================
+     ICON
+  ========================= */
+
   const icon =
     a.icon ||
     a.iconUrl ||
     'assets/icon-default.svg';
+
+
+  /* =========================
+     APK
+  ========================= */
 
   const apk =
     a.apk ||
     a.apkUrl ||
     '#';
 
+
+  /* =========================
+     DETAIL HTML
+  ========================= */
+
   el.innerHTML = `
+
     <div class="detail-card">
 
       <img
         class="detail-icon"
         src="${esc(icon)}"
         alt="${esc(a.name || '')}"
-        onerror="this.src='assets/icon-default.svg'"
+        onerror="this.onerror=null;this.src='assets/icon-default.svg';"
       >
 
       <div>
@@ -204,8 +302,14 @@ function detail() {
       </div>
 
     </div>
+
   `;
 }
+
+
+/* =========================
+   START
+========================= */
 
 render();
 detail();
