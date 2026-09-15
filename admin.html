@@ -1,20 +1,333 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin — Fakhrul APK</title><link rel="stylesheet" href="styles.css"></head>
-<body><header class="topbar"><a class="brand" href="index.html"><span class="logo">F</span> Fakhrul <span class="brand-accent">APK</span></a><a class="admin-link" href="index.html">View store</a></header>
-<main class="admin-wrap"><div class="admin-card"><span class="eyebrow">CONTENT MANAGER</span><h1>Add an app</h1>
-<p class="muted">This first version stores app data in your browser. For a live multi-user admin panel, connect a database/backend later.</p>
-<form id="appForm">
-<label>App name<input name="name" required></label>
-<label>Developer<input name="developer" required></label>
-<label>Category<select name="category"><option>Tools</option><option>Games</option><option>Education</option><option>Productivity</option><option>Entertainment</option></select></label>
-<label>Version<input name="version" value="1.0.0" required></label>
-<label>Size<input name="size" placeholder="25 MB" required></label>
-<label>Android requirement<input name="android" value="Android 7.0+" required></label>
-<label>Icon URL<input name="icon" placeholder="https://..."></label>
-<label>Description<textarea name="description" required></textarea></label>
-<label>APK URL<input name="apk" placeholder="https://your-host/app.apk" required></label>
-<button class="primary" type="submit">Add app to store</button>
-</form></div>
-<div class="admin-card"><h2>Current apps</h2><div id="adminList"></div></div></main>
-<script src="apps.js"></script><script src="admin.js"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Fakhrul APK - Admin</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #111827;
+    }
+
+    .topbar {
+      background: #ffffff;
+      border-bottom: 1px solid #e5e7eb;
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .brand {
+      font-size: 24px;
+      font-weight: 800;
+    }
+
+    .brand span {
+      color: #16a765;
+    }
+
+    .store-link {
+      text-decoration: none;
+      color: #111827;
+      font-weight: 700;
+    }
+
+    .container {
+      width: 100%;
+      max-width: 900px;
+      margin: 25px auto;
+      padding: 0 16px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 20px;
+      padding: 24px;
+      margin-bottom: 25px;
+      box-shadow: 0 5px 20px rgba(0,0,0,.06);
+    }
+
+    h1, h2 {
+      margin-top: 0;
+    }
+
+    h1 {
+      font-size: 28px;
+    }
+
+    h2 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin: 16px 0 7px;
+    }
+
+    input,
+    textarea,
+    select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 16px;
+      outline: none;
+    }
+
+    textarea {
+      min-height: 130px;
+      resize: vertical;
+    }
+
+    input:focus,
+    textarea:focus,
+    select:focus {
+      border-color: #16a765;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 22px;
+      flex-wrap: wrap;
+    }
+
+    button {
+      border: 0;
+      border-radius: 12px;
+      padding: 14px 20px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .add-btn {
+      background: #16a765;
+      color: white;
+      width: 100%;
+    }
+
+    .update-btn {
+      background: #2563eb;
+      color: white;
+    }
+
+    .cancel-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .app-item {
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 15px;
+      background: #fafafa;
+    }
+
+    .app-name {
+      font-size: 19px;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    .app-info {
+      color: #6b7280;
+      margin-bottom: 12px;
+    }
+
+    .app-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .edit-btn {
+      background: #2563eb;
+      color: white;
+    }
+
+    .delete-btn {
+      background: #dc2626;
+      color: white;
+    }
+
+    .empty {
+      color: #6b7280;
+      text-align: center;
+      padding: 20px;
+    }
+
+    .editing {
+      border: 2px solid #2563eb;
+    }
+
+    @media (max-width: 600px) {
+      .topbar {
+        padding: 14px;
+      }
+
+      .brand {
+        font-size: 20px;
+      }
+
+      .card {
+        padding: 18px;
+        border-radius: 16px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      Fakhrul <span>APK</span>
+    </div>
+
+    <a class="store-link" href="index.html">
+      View store
+    </a>
+  </header>
+
+  <main class="container">
+
+    <section class="card">
+
+      <h1 id="formTitle">Add App</h1>
+
+      <form id="appForm">
+
+        <label for="appName">App name</label>
+        <input
+          type="text"
+          id="appName"
+          placeholder="Example: Unik Mini Market"
+          required
+        >
+
+        <label for="developer">Developer</label>
+        <input
+          type="text"
+          id="developer"
+          placeholder="Developer name"
+          required
+        >
+
+        <label for="category">Category</label>
+        <select id="category" required>
+          <option value="Tools">Tools</option>
+          <option value="Games">Games</option>
+          <option value="Education">Education</option>
+          <option value="Productivity">Productivity</option>
+          <option value="Entertainment">Entertainment</option>
+        </select>
+
+        <label for="version">Version</label>
+        <input
+          type="text"
+          id="version"
+          placeholder="Example: 1.0.0"
+          required
+        >
+
+        <label for="size">Size</label>
+        <input
+          type="text"
+          id="size"
+          placeholder="Example: 8.5 MB"
+          required
+        >
+
+        <label for="android">Android requirement</label>
+        <input
+          type="text"
+          id="android"
+          placeholder="Example: Android 5.1+"
+          required
+        >
+
+        <label for="iconUrl">Icon URL</label>
+        <input
+          type="url"
+          id="iconUrl"
+          placeholder="https://..."
+        >
+
+        <label for="description">Description</label>
+        <textarea
+          id="description"
+          placeholder="Write app description..."
+          required
+        ></textarea>
+
+        <label for="apkUrl">APK URL</label>
+        <input
+          type="url"
+          id="apkUrl"
+          placeholder="https://github.com/.../releases/latest/download/app.apk"
+          required
+        >
+
+        <div class="buttons">
+
+          <button
+            type="submit"
+            class="add-btn"
+            id="submitBtn"
+          >
+            Add app to store
+          </button>
+
+          <button
+            type="button"
+            class="cancel-btn"
+            id="cancelBtn"
+            style="display:none;"
+          >
+            Cancel edit
+          </button>
+
+        </div>
+
+      </form>
+
+    </section>
+
+
+    <section class="card">
+
+      <h2>Current apps</h2>
+
+      <div id="appsList"></div>
+
+    </section>
+
+  </main>
+
+
+  <script src="admin.js"></script>
+
+</body>
+</html>
