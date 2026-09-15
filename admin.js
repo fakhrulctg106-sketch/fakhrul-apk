@@ -1,10 +1,57 @@
 const key = 'fakhrulapk_apps';
 
-let custom = JSON.parse(localStorage.getItem(key) || '[]');
+let custom = [];
 let editingId = null;
 
+
+// =========================
+// LOAD APPS
+// =========================
+
+function loadApps() {
+  try {
+    const saved = localStorage.getItem(key);
+
+    custom = saved ? JSON.parse(saved) : [];
+
+    if (!Array.isArray(custom)) {
+      custom = [];
+    }
+  } catch (error) {
+    console.error('Could not load apps:', error);
+    custom = [];
+  }
+}
+
+
+// =========================
+// SAVE APPS
+// =========================
+
+function saveApps() {
+  try {
+    localStorage.setItem(key, JSON.stringify(custom));
+
+    // Verify that the data was actually saved
+    const check = JSON.parse(
+      localStorage.getItem(key) || '[]'
+    );
+
+    return Array.isArray(check);
+  } catch (error) {
+    console.error('Could not save apps:', error);
+    alert('App data could not be saved.');
+    return false;
+  }
+}
+
+
+// =========================
+// ESCAPE HTML
+// =========================
+
 function esc(s) {
-  return String(s).replace(/[&<>"']/g, c => ({
+  return String(s ?? '').replace(/[&<>"']/g, c => ({
     '&': '&amp;',
     '<': '&lt;',
     '>': '&gt;',
@@ -13,77 +60,147 @@ function esc(s) {
   }[c]));
 }
 
+
+// =========================
+// DRAW APP LIST
+// =========================
+
 function draw() {
+
   const el = document.getElementById('appsList');
 
   if (!el) return;
 
   if (!custom.length) {
-    el.innerHTML = '<p class="empty">No custom apps yet.</p>';
+    el.innerHTML =
+      '<p class="empty">No custom apps yet.</p>';
     return;
   }
 
   el.innerHTML = custom.map(a => `
     <div class="app-item ${editingId === a.id ? 'editing' : ''}">
-      <div class="app-name">${esc(a.name || '')}</div>
+
+      <div class="app-name">
+        ${esc(a.name || '')}
+      </div>
 
       <div class="app-info">
-        ${esc(a.developer || '')} •
-        ${esc(a.category || '')} •
+        ${esc(a.developer || '')}
+        •
+        ${esc(a.category || '')}
+        •
         Version ${esc(a.version || '')}
       </div>
 
       <div class="app-actions">
+
         <button
+          type="button"
           class="edit-btn"
           onclick="editApp('${esc(a.id)}')">
           Edit
         </button>
 
         <button
+          type="button"
           class="delete-btn"
           onclick="removeApp('${esc(a.id)}')">
           Delete
         </button>
+
       </div>
+
     </div>
   `).join('');
 }
 
 
-function saveApps() {
-  localStorage.setItem(key, JSON.stringify(custom));
+// =========================
+// GET FORM VALUE
+// =========================
+
+function getValue(id) {
+
+  const el = document.getElementById(id);
+
+  if (!el) return '';
+
+  return el.value.trim();
 }
 
 
+// =========================
+// SET FORM VALUE
+// =========================
+
+function setValue(id, value) {
+
+  const el = document.getElementById(id);
+
+  if (el) {
+    el.value = value || '';
+  }
+}
+
+
+// =========================
+// EDIT APP
+// =========================
+
 function editApp(id) {
+
   const app = custom.find(a => a.id === id);
 
-  if (!app) return;
+  if (!app) {
+    alert('App not found.');
+    return;
+  }
 
   editingId = id;
 
-  document.getElementById('appName').value = app.name || '';
-  document.getElementById('developer').value = app.developer || '';
-  document.getElementById('category').value = app.category || 'Tools';
-  document.getElementById('version').value = app.version || '';
-  document.getElementById('size').value = app.size || '';
-  document.getElementById('android').value = app.android || '';
-  document.getElementById('iconUrl').value = app.iconUrl || '';
-  document.getElementById('description').value = app.description || '';
-  document.getElementById('apkUrl').value = app.apkUrl || '';
 
-  document.getElementById('formTitle').textContent = 'Edit App';
+  setValue('appName', app.name);
+  setValue('developer', app.developer);
+  setValue('category', app.category || 'Tools');
+  setValue('version', app.version);
+  setValue('size', app.size);
+  setValue('android', app.android);
+  setValue('iconUrl', app.iconUrl || app.icon || '');
+  setValue('description', app.description);
+  setValue('apkUrl', app.apkUrl || app.apk || '');
 
-  const submitBtn = document.getElementById('submitBtn');
 
-  submitBtn.textContent = 'Update App';
-  submitBtn.classList.remove('add-btn');
-  submitBtn.classList.add('update-btn');
+  const title =
+    document.getElementById('formTitle');
 
-  document.getElementById('cancelBtn').style.display = 'block';
+  if (title) {
+    title.textContent = 'Edit App';
+  }
+
+
+  const submitBtn =
+    document.getElementById('submitBtn');
+
+  if (submitBtn) {
+
+    submitBtn.textContent = 'Update App';
+
+    submitBtn.classList.remove('add-btn');
+
+    submitBtn.classList.add('update-btn');
+  }
+
+
+  const cancelBtn =
+    document.getElementById('cancelBtn');
+
+  if (cancelBtn) {
+    cancelBtn.style.display = 'block';
+  }
+
 
   draw();
+
 
   window.scrollTo({
     top: 0,
@@ -92,37 +209,84 @@ function editApp(id) {
 }
 
 
+// =========================
+// CANCEL EDIT
+// =========================
+
 function cancelEdit() {
+
   editingId = null;
 
-  document.getElementById('appForm').reset();
 
-  document.getElementById('formTitle').textContent = 'Add App';
+  const form =
+    document.getElementById('appForm');
 
-  const submitBtn = document.getElementById('submitBtn');
+  if (form) {
+    form.reset();
+  }
 
-  submitBtn.textContent = 'Add app to store';
-  submitBtn.classList.remove('update-btn');
-  submitBtn.classList.add('add-btn');
 
-  document.getElementById('cancelBtn').style.display = 'none';
+  const title =
+    document.getElementById('formTitle');
+
+  if (title) {
+    title.textContent = 'Add App';
+  }
+
+
+  const submitBtn =
+    document.getElementById('submitBtn');
+
+  if (submitBtn) {
+
+    submitBtn.textContent =
+      'Add app to store';
+
+    submitBtn.classList.remove(
+      'update-btn'
+    );
+
+    submitBtn.classList.add(
+      'add-btn'
+    );
+  }
+
+
+  const cancelBtn =
+    document.getElementById('cancelBtn');
+
+  if (cancelBtn) {
+    cancelBtn.style.display = 'none';
+  }
+
 
   draw();
 }
 
 
+// =========================
+// DELETE APP
+// =========================
+
 function removeApp(id) {
-  const app = custom.find(a => a.id === id);
+
+  const app =
+    custom.find(a => a.id === id);
 
   if (!app) return;
+
 
   if (!confirm(`Delete "${app.name}"?`)) {
     return;
   }
 
-  custom = custom.filter(a => a.id !== id);
+
+  custom =
+    custom.filter(a => a.id !== id);
+
 
   saveApps();
+
 
   if (editingId === id) {
     cancelEdit();
@@ -132,55 +296,246 @@ function removeApp(id) {
 }
 
 
-document.getElementById('appForm').addEventListener('submit', e => {
+// =========================
+// ADD / UPDATE
+// =========================
+
+function handleSubmit(e) {
+
   e.preventDefault();
 
-  const form = e.target;
-  const data = new FormData(form);
-  const values = Object.fromEntries(data);
+
+  // -------------------------
+  // UPDATE EXISTING APP
+  // -------------------------
 
   if (editingId) {
 
-    const index = custom.findIndex(a => a.id === editingId);
+    const index =
+      custom.findIndex(
+        a => a.id === editingId
+      );
 
-    if (index !== -1) {
-      custom[index] = {
-        ...custom[index],
-        ...values,
-        id: editingId
-      };
+
+    if (index === -1) {
+
+      alert('App not found.');
+
+      return;
     }
 
-    saveApps();
 
-    alert('App updated successfully.');
+    const oldApp =
+      custom[index];
+
+
+    const updatedApp = {
+
+      ...oldApp,
+
+      name: getValue('appName'),
+
+      developer:
+        getValue('developer'),
+
+      category:
+        getValue('category') || 'Tools',
+
+      version:
+        getValue('version'),
+
+      size:
+        getValue('size'),
+
+      android:
+        getValue('android'),
+
+      iconUrl:
+        getValue('iconUrl'),
+
+      description:
+        getValue('description'),
+
+      apkUrl:
+        getValue('apkUrl'),
+
+      id: editingId
+    };
+
+
+    custom[index] =
+      updatedApp;
+
+
+    const saved =
+      saveApps();
+
+
+    if (!saved) {
+      return;
+    }
+
+
+    // Verify updated value
+    loadApps();
+
+
+    const verify =
+      custom.find(
+        a => a.id === editingId
+      );
+
+
+    if (
+      !verify ||
+      verify.name !== updatedApp.name
+    ) {
+
+      alert(
+        'Update could not be verified.'
+      );
+
+      return;
+    }
+
+
+    alert(
+      'App updated successfully.'
+    );
+
 
     cancelEdit();
 
-  } else {
+    return;
+  }
 
-    const app = {
-      ...values,
-      id: 'custom-' + Date.now()
-    };
 
-    custom.unshift(app);
+  // -------------------------
+  // ADD NEW APP
+  // -------------------------
 
+  const newApp = {
+
+    name:
+      getValue('appName'),
+
+    developer:
+      getValue('developer'),
+
+    category:
+      getValue('category') || 'Tools',
+
+    version:
+      getValue('version'),
+
+    size:
+      getValue('size'),
+
+    android:
+      getValue('android'),
+
+    iconUrl:
+      getValue('iconUrl'),
+
+    description:
+      getValue('description'),
+
+    apkUrl:
+      getValue('apkUrl'),
+
+    id:
+      'custom-' + Date.now()
+  };
+
+
+  custom.unshift(newApp);
+
+
+  const saved =
     saveApps();
 
-    form.reset();
 
-    alert('App added. Open the store to see it.');
-
-    draw();
+  if (!saved) {
+    return;
   }
-});
 
 
-document.getElementById('cancelBtn').addEventListener(
-  'click',
-  cancelEdit
-);
+  const form =
+    document.getElementById('appForm');
+
+  if (form) {
+    form.reset();
+  }
 
 
-draw();
+  alert(
+    'App added. Open the store to see it.'
+  );
+
+
+  draw();
+}
+
+
+// =========================
+// INITIALIZE
+// =========================
+
+function initAdmin() {
+
+  loadApps();
+
+
+  const form =
+    document.getElementById('appForm');
+
+
+  if (form) {
+
+    form.addEventListener(
+      'submit',
+      handleSubmit
+    );
+  }
+
+
+  const cancelBtn =
+    document.getElementById('cancelBtn');
+
+
+  if (cancelBtn) {
+
+    cancelBtn.addEventListener(
+      'click',
+      cancelEdit
+    );
+  }
+
+
+  // Make functions available
+  // to inline HTML onclick buttons
+
+  window.editApp = editApp;
+
+  window.removeApp = removeApp;
+
+  window.cancelEdit = cancelEdit;
+
+
+  draw();
+}
+
+
+if (
+  document.readyState === 'loading'
+) {
+
+  document.addEventListener(
+    'DOMContentLoaded',
+    initAdmin
+  );
+
+} else {
+
+  initAdmin();
+    }
