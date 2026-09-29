@@ -1,210 +1,106 @@
-const key = 'fakhrulapk_apps';
+/* =========================================================
+   FAKHRUL APK STORE
+   Firebase Firestore + Google Admin Login
+========================================================= */
+
+
+/* =========================================================
+   FIREBASE CONFIG
+========================================================= */
+
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyD1eUCBB6vkFIUPQnFtNM1Tgrywze_LMbQ",
+  authDomain: "fakhrul-apk-store.firebaseapp.com",
+  databaseURL: "https://fakhrul-apk-store-default-rtdb.firebaseio.com",
+  projectId: "fakhrul-apk-store",
+  storageBucket: "fakhrul-apk-store.firebasestorage.app",
+  messagingSenderId: "931246639573",
+  appId: "1:931246639573:web:bb957d8e3ed4f77dfa555c"
+};
+
+
+/* =========================================================
+   ADMIN EMAIL
+========================================================= */
+
+const ADMIN_EMAIL = "fakhrulctg106@gmail.com";
+
+
+/* =========================================================
+   OLD LOCAL STORAGE KEY
+========================================================= */
+
+const OLD_STORAGE_KEY = "fakhrulapk_apps";
+
+
+/* =========================================================
+   FIREBASE INITIALIZE
+========================================================= */
+
+if (
+  typeof firebase !== "undefined" &&
+  !firebase.apps.length
+) {
+  firebase.initializeApp(FIREBASE_CONFIG);
+}
+
+
+const db =
+  typeof firebase !== "undefined"
+    ? firebase.firestore()
+    : null;
+
+
+const auth =
+  typeof firebase !== "undefined"
+    ? firebase.auth()
+    : null;
+
 
 let custom = [];
 let editingId = null;
+let currentUser = null;
 
 
-// =========================
-// LOAD APPS
-// =========================
-
-function loadApps() {
-  try {
-    const saved = localStorage.getItem(key);
-
-    custom = saved ? JSON.parse(saved) : [];
-
-    if (!Array.isArray(custom)) {
-      custom = [];
-    }
-
-    // পুরোনো ও নতুন icon field একসাথে ঠিক করা
-    custom = custom.map(app => ({
-      ...app,
-
-      iconUrl:
-        app.iconUrl ||
-        app.icon ||
-        '',
-
-      apkUrl:
-        app.apkUrl ||
-        app.apk ||
-        ''
-    }));
-
-  } catch (error) {
-    console.error('Could not load apps:', error);
-    custom = [];
-  }
-}
-
-
-// =========================
-// SAVE APPS
-// =========================
-
-function saveApps() {
-  try {
-
-    // Save করার আগে icon/apk field ঠিক করা
-    custom = custom.map(app => ({
-      ...app,
-
-      iconUrl:
-        app.iconUrl ||
-        app.icon ||
-        '',
-
-      apkUrl:
-        app.apkUrl ||
-        app.apk ||
-        ''
-    }));
-
-    localStorage.setItem(
-      key,
-      JSON.stringify(custom)
-    );
-
-    // আবার পড়ে নিশ্চিত হওয়া
-    const check = JSON.parse(
-      localStorage.getItem(key) || '[]'
-    );
-
-    if (!Array.isArray(check)) {
-      throw new Error('Saved data is not an array');
-    }
-
-    return true;
-
-  } catch (error) {
-
-    console.error(
-      'Could not save apps:',
-      error
-    );
-
-    alert(
-      'App data could not be saved.'
-    );
-
-    return false;
-  }
-}
-
-
-// =========================
-// ESCAPE HTML
-// =========================
+/* =========================================================
+   ESCAPE HTML
+========================================================= */
 
 function esc(s) {
 
-  return String(s ?? '').replace(
+  return String(s ?? "").replace(
     /[&<>"']/g,
     c => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;',
-      "'": '&#039;'
+      "&": "&amp;",
+      "<": "&lt;",
+      ">": "&gt;",
+      '"': "&quot;",
+      "'": "&#039;"
     }[c])
   );
+
 }
 
 
-// =========================
-// DRAW APP LIST
-// =========================
-
-function draw() {
-
-  const el =
-    document.getElementById('appsList');
-
-  if (!el) return;
-
-
-  if (!custom.length) {
-
-    el.innerHTML =
-      '<p class="empty">No custom apps yet.</p>';
-
-    return;
-  }
-
-
-  el.innerHTML = custom.map(a => `
-
-    <div class="app-item ${
-      editingId === a.id
-        ? 'editing'
-        : ''
-    }">
-
-      <div class="app-name">
-        ${esc(a.name || '')}
-      </div>
-
-      <div class="app-info">
-
-        ${esc(a.developer || '')}
-
-        •
-
-        ${esc(a.category || '')}
-
-        •
-
-        Version
-        ${esc(a.version || '')}
-
-      </div>
-
-      <div class="app-actions">
-
-        <button
-          type="button"
-          class="edit-btn"
-          onclick="editApp('${esc(a.id)}')"
-        >
-          Edit
-        </button>
-
-        <button
-          type="button"
-          class="delete-btn"
-          onclick="removeApp('${esc(a.id)}')"
-        >
-          Delete
-        </button>
-
-      </div>
-
-    </div>
-
-  `).join('');
-}
-
-
-// =========================
-// GET FORM VALUE
-// =========================
+/* =========================================================
+   GET FORM VALUE
+========================================================= */
 
 function getValue(id) {
 
   const el =
     document.getElementById(id);
 
-  if (!el) return '';
+  if (!el) return "";
 
   return el.value.trim();
+
 }
 
 
-// =========================
-// SET FORM VALUE
-// =========================
+/* =========================================================
+   SET FORM VALUE
+========================================================= */
 
 function setValue(id, value) {
 
@@ -212,131 +108,393 @@ function setValue(id, value) {
     document.getElementById(id);
 
   if (el) {
-
-    el.value =
-      value ?? '';
+    el.value = value ?? "";
   }
+
 }
 
 
-// =========================
-// EDIT APP
-// =========================
+/* =========================================================
+   NORMALIZE APP
+========================================================= */
+
+function normalizeApp(app) {
+
+  return {
+
+    ...app,
+
+    iconUrl:
+      app.iconUrl ||
+      app.icon ||
+      "",
+
+    icon:
+      app.iconUrl ||
+      app.icon ||
+      "",
+
+    apkUrl:
+      app.apkUrl ||
+      app.apk ||
+      "",
+
+    apk:
+      app.apkUrl ||
+      app.apk ||
+      ""
+
+  };
+
+}
+
+
+/* =========================================================
+   LOAD APPS FROM FIRESTORE
+========================================================= */
+
+async function loadApps() {
+
+  if (!db) {
+
+    console.error(
+      "Firebase Firestore is not available."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    const snapshot =
+      await db
+        .collection("apps")
+        .get();
+
+
+    custom =
+      snapshot.docs.map(doc => {
+
+        const data =
+          doc.data();
+
+        return normalizeApp({
+
+          ...data,
+
+          id:
+            data.id ||
+            doc.id
+
+        });
+
+      });
+
+
+    console.log(
+      "Firebase apps loaded:",
+      custom
+    );
+
+
+    draw();
+
+  } catch (error) {
+
+    console.error(
+      "Could not load apps from Firebase:",
+      error
+    );
+
+
+    alert(
+      "Firebase থেকে App লোড করা যায়নি। Firestore Rules পরীক্ষা করুন।"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   REAL-TIME FIRESTORE LISTENER
+========================================================= */
+
+function listenForApps() {
+
+  if (!db) return;
+
+
+  db.collection("apps")
+    .onSnapshot(
+
+      snapshot => {
+
+        custom =
+          snapshot.docs.map(doc => {
+
+            const data =
+              doc.data();
+
+            return normalizeApp({
+
+              ...data,
+
+              id:
+                data.id ||
+                doc.id
+
+            });
+
+          });
+
+
+        console.log(
+          "Firebase apps updated:",
+          custom
+        );
+
+
+        draw();
+
+      },
+
+      error => {
+
+        console.error(
+          "Firebase listener error:",
+          error
+        );
+
+      }
+
+    );
+
+}
+
+
+/* =========================================================
+   DRAW APP LIST
+========================================================= */
+
+function draw() {
+
+  const el =
+    document.getElementById(
+      "appsList"
+    );
+
+
+  if (!el) return;
+
+
+  if (!custom.length) {
+
+    el.innerHTML =
+      '<p class="empty">No apps yet.</p>';
+
+    return;
+
+  }
+
+
+  el.innerHTML =
+    custom.map(a => `
+
+      <div class="app-item ${
+        editingId === a.id
+          ? "editing"
+          : ""
+      }">
+
+        <div class="app-name">
+          ${esc(a.name || "")}
+        </div>
+
+
+        <div class="app-info">
+
+          ${esc(a.developer || "")}
+
+          •
+
+          ${esc(a.category || "")}
+
+          •
+
+          Version
+          ${esc(a.version || "")}
+
+        </div>
+
+
+        <div class="app-actions">
+
+          <button
+            type="button"
+            class="edit-btn"
+            onclick="editApp('${esc(a.id)}')"
+          >
+            Edit
+          </button>
+
+
+          <button
+            type="button"
+            class="delete-btn"
+            onclick="removeApp('${esc(a.id)}')"
+          >
+            Delete
+          </button>
+
+        </div>
+
+      </div>
+
+    `).join("");
+
+}
+
+
+/* =========================================================
+   EDIT APP
+========================================================= */
 
 function editApp(id) {
 
   const app =
-    custom.find(a => a.id === id);
+    custom.find(
+      a =>
+        String(a.id) ===
+        String(id)
+    );
+
 
   if (!app) {
 
-    alert('App not found.');
+    alert(
+      "App not found."
+    );
 
     return;
+
   }
 
 
-  editingId = id;
+  editingId =
+    app.id;
 
 
   setValue(
-    'appName',
+    "appName",
     app.name
   );
 
+
   setValue(
-    'developer',
+    "developer",
     app.developer
   );
 
-  setValue(
-    'category',
-    app.category || 'Tools'
-  );
 
   setValue(
-    'version',
+    "category",
+    app.category ||
+    "Tools"
+  );
+
+
+  setValue(
+    "version",
     app.version
   );
 
+
   setValue(
-    'size',
+    "size",
     app.size
   );
 
+
   setValue(
-    'android',
+    "android",
     app.android
   );
 
 
-  // =========================
-  // ICON URL
-  // =========================
-
   setValue(
-    'iconUrl',
-    app.iconUrl || app.icon || ''
+    "iconUrl",
+    app.iconUrl ||
+    app.icon ||
+    ""
   );
 
 
   setValue(
-    'description',
+    "description",
     app.description
   );
 
 
-  // =========================
-  // APK URL
-  // =========================
-
   setValue(
-    'apkUrl',
-    app.apkUrl || app.apk || ''
+    "apkUrl",
+    app.apkUrl ||
+    app.apk ||
+    ""
   );
 
 
   const title =
     document.getElementById(
-      'formTitle'
+      "formTitle"
     );
+
 
   if (title) {
 
     title.textContent =
-      'Edit App';
+      "Edit App";
+
   }
 
 
   const submitBtn =
     document.getElementById(
-      'submitBtn'
+      "submitBtn"
     );
+
 
   if (submitBtn) {
 
     submitBtn.textContent =
-      'Update App';
+      "Update App";
+
 
     submitBtn.classList.remove(
-      'add-btn'
+      "add-btn"
     );
 
+
     submitBtn.classList.add(
-      'update-btn'
+      "update-btn"
     );
+
   }
 
 
   const cancelBtn =
     document.getElementById(
-      'cancelBtn'
+      "cancelBtn"
     );
+
 
   if (cancelBtn) {
 
     cancelBtn.style.display =
-      'block';
+      "block";
+
   }
 
 
@@ -344,88 +502,109 @@ function editApp(id) {
 
 
   window.scrollTo({
+
     top: 0,
-    behavior: 'smooth'
+
+    behavior: "smooth"
+
   });
+
 }
 
 
-// =========================
-// CANCEL EDIT
-// =========================
+/* =========================================================
+   CANCEL EDIT
+========================================================= */
 
 function cancelEdit() {
 
-  editingId = null;
+  editingId =
+    null;
 
 
   const form =
     document.getElementById(
-      'appForm'
+      "appForm"
     );
+
 
   if (form) {
 
     form.reset();
+
   }
 
 
   const title =
     document.getElementById(
-      'formTitle'
+      "formTitle"
     );
+
 
   if (title) {
 
     title.textContent =
-      'Add App';
+      "Add App";
+
   }
 
 
   const submitBtn =
     document.getElementById(
-      'submitBtn'
+      "submitBtn"
     );
+
 
   if (submitBtn) {
 
     submitBtn.textContent =
-      'Add app to store';
+      "Add app to store";
+
 
     submitBtn.classList.remove(
-      'update-btn'
+      "update-btn"
     );
 
+
     submitBtn.classList.add(
-      'add-btn'
+      "add-btn"
     );
+
   }
 
 
   const cancelBtn =
     document.getElementById(
-      'cancelBtn'
+      "cancelBtn"
     );
+
 
   if (cancelBtn) {
 
     cancelBtn.style.display =
-      'none';
+      "none";
+
   }
 
 
   draw();
+
 }
 
 
-// =========================
-// DELETE APP
-// =========================
+/* =========================================================
+   DELETE APP
+========================================================= */
 
-function removeApp(id) {
+async function removeApp(id) {
 
   const app =
-    custom.find(a => a.id === id);
+    custom.find(
+      a =>
+        String(a.id) ===
+        String(id)
+    );
+
 
   if (!app) return;
 
@@ -437,125 +616,165 @@ function removeApp(id) {
   ) {
 
     return;
+
   }
 
 
-  custom =
-    custom.filter(
-      a => a.id !== id
+  if (!db) {
+
+    alert(
+      "Firebase is not available."
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    await db
+      .collection("apps")
+      .doc(String(id))
+      .delete();
+
+
+    if (
+      String(editingId) ===
+      String(id)
+    ) {
+
+      cancelEdit();
+
+    }
+
+
+    alert(
+      "App deleted successfully."
     );
 
 
-  saveApps();
+  } catch (error) {
+
+    console.error(
+      "Delete error:",
+      error
+    );
 
 
-  if (editingId === id) {
+    alert(
+      "App delete করা যায়নি। Firebase Rules পরীক্ষা করুন।"
+    );
 
-    cancelEdit();
-
-  } else {
-
-    draw();
   }
+
 }
 
 
-// =========================
-// ADD / UPDATE
-// =========================
+/* =========================================================
+   ADD / UPDATE APP
+========================================================= */
 
-function handleSubmit(e) {
+async function handleSubmit(e) {
 
   e.preventDefault();
 
 
-  // =========================
-  // UPDATE EXISTING APP
-  // =========================
+  if (!currentUser) {
+
+    alert(
+      "প্রথমে Admin Google Login করুন।"
+    );
+
+    return;
+
+  }
+
+
+  if (!db) {
+
+    alert(
+      "Firebase Firestore পাওয়া যাচ্ছে না।"
+    );
+
+    return;
+
+  }
+
+
+  /* =====================================================
+     UPDATE EXISTING APP
+  ===================================================== */
 
   if (editingId) {
 
-    const index =
-      custom.findIndex(
-        a => a.id === editingId
+    const oldApp =
+      custom.find(
+        a =>
+          String(a.id) ===
+          String(editingId)
       );
 
 
-    if (index === -1) {
+    if (!oldApp) {
 
       alert(
-        'App not found.'
+        "App not found."
       );
 
       return;
+
     }
 
 
-    const oldApp =
-      custom[index];
-
-
-    // =========================
-    // GET ICON URL
-    // =========================
-
     const iconInput =
-      getValue('iconUrl');
+      getValue("iconUrl");
 
 
-    // যদি নতুন Icon URL দেওয়া হয়
-    // তাহলে নতুনটাই থাকবে।
-    // খালি থাকলে আগেরটা থাকবে।
+    const apkInput =
+      getValue("apkUrl");
+
+
     const finalIcon =
       iconInput ||
       oldApp.iconUrl ||
       oldApp.icon ||
-      '';
-
-
-    // =========================
-    // GET APK URL
-    // =========================
-
-    const apkInput =
-      getValue('apkUrl');
+      "";
 
 
     const finalApk =
       apkInput ||
       oldApp.apkUrl ||
       oldApp.apk ||
-      '';
+      "";
 
-
-    // =========================
-    // UPDATED APP
-    // =========================
 
     const updatedApp = {
 
       ...oldApp,
 
+      id:
+        String(editingId),
+
       name:
-        getValue('appName'),
+        getValue("appName"),
 
       developer:
-        getValue('developer'),
+        getValue("developer"),
 
       category:
-        getValue('category') ||
-        'Tools',
+        getValue("category") ||
+        "Tools",
 
       version:
-        getValue('version'),
+        getValue("version"),
 
       size:
-        getValue('size'),
+        getValue("size"),
 
       android:
-        getValue('android'),
+        getValue("android"),
 
-      // দুই field-এই একই URL রাখা হচ্ছে
       iconUrl:
         finalIcon,
 
@@ -563,7 +782,7 @@ function handleSubmit(e) {
         finalIcon,
 
       description:
-        getValue('description'),
+        getValue("description"),
 
       apkUrl:
         finalApk,
@@ -571,123 +790,98 @@ function handleSubmit(e) {
       apk:
         finalApk,
 
-      id:
-        editingId
+      updatedAt:
+        firebase.firestore
+          .FieldValue
+          .serverTimestamp()
+
     };
 
 
-    custom[index] =
-      updatedApp;
+    try {
 
+      await db
+        .collection("apps")
+        .doc(
+          String(editingId)
+        )
+        .set(
+          updatedApp,
+          {
+            merge: true
+          }
+        );
 
-    // =========================
-    // SAVE
-    // =========================
-
-    const saved =
-      saveApps();
-
-
-    if (!saved) {
-
-      return;
-    }
-
-
-    // =========================
-    // VERIFY
-    // =========================
-
-    loadApps();
-
-
-    const verify =
-      custom.find(
-        a => a.id === editingId
-      );
-
-
-    if (!verify) {
 
       alert(
-        'Update could not be verified.'
+        "App updated successfully."
       );
 
-      return;
-    }
+
+      cancelEdit();
 
 
-    if (
-      verify.name !==
-      updatedApp.name
-    ) {
+    } catch (error) {
+
+      console.error(
+        "Update error:",
+        error
+      );
+
 
       alert(
-        'Name update could not be verified.'
+        "App update করা যায়নি। Firebase Rules পরীক্ষা করুন।"
       );
 
-      return;
     }
 
-
-    if (
-      verify.iconUrl !==
-      updatedApp.iconUrl
-    ) {
-
-      alert(
-        'Icon URL could not be saved.'
-      );
-
-      return;
-    }
-
-
-    alert(
-      'App updated successfully.'
-    );
-
-
-    cancelEdit();
 
     return;
+
   }
 
 
-  // =========================
-  // ADD NEW APP
-  // =========================
+  /* =====================================================
+     ADD NEW APP
+  ===================================================== */
 
   const iconInput =
-    getValue('iconUrl');
+    getValue("iconUrl");
 
 
   const apkInput =
-    getValue('apkUrl');
+    getValue("apkUrl");
+
+
+  const newId =
+    "custom-" +
+    Date.now();
 
 
   const newApp = {
 
+    id:
+      newId,
+
     name:
-      getValue('appName'),
+      getValue("appName"),
 
     developer:
-      getValue('developer'),
+      getValue("developer"),
 
     category:
-      getValue('category') ||
-      'Tools',
+      getValue("category") ||
+      "Tools",
 
     version:
-      getValue('version'),
+      getValue("version"),
 
     size:
-      getValue('size'),
+      getValue("size"),
 
     android:
-      getValue('android'),
+      getValue("android"),
 
-    // Icon দুই জায়গায় রাখা
     iconUrl:
       iconInput,
 
@@ -695,124 +889,632 @@ function handleSubmit(e) {
       iconInput,
 
     description:
-      getValue('description'),
+      getValue("description"),
 
-    // APK দুই জায়গায় রাখা
     apkUrl:
       apkInput,
 
     apk:
       apkInput,
 
-    id:
-      'custom-' + Date.now()
+    createdAt:
+      firebase.firestore
+        .FieldValue
+        .serverTimestamp(),
+
+    updatedAt:
+      firebase.firestore
+        .FieldValue
+        .serverTimestamp()
+
   };
 
 
-  custom.unshift(
-    newApp
-  );
+  try {
+
+    await db
+      .collection("apps")
+      .doc(newId)
+      .set(newApp);
 
 
-  const saved =
-    saveApps();
+    const form =
+      document.getElementById(
+        "appForm"
+      );
 
 
-  if (!saved) {
+    if (form) {
 
-    return;
-  }
+      form.reset();
+
+    }
 
 
-  const form =
-    document.getElementById(
-      'appForm'
+    alert(
+      "App added successfully. এখন অন্য ফোন থেকেও দেখা যাবে।"
     );
 
-  if (form) {
 
-    form.reset();
+    draw();
+
+
+  } catch (error) {
+
+    console.error(
+      "Add app error:",
+      error
+    );
+
+
+    alert(
+      "App যোগ করা যায়নি। Firebase Rules এবং Admin Login পরীক্ষা করুন।"
+    );
+
   }
 
-
-  alert(
-    'App added. Open the store to see it.'
-  );
-
-
-  draw();
 }
 
 
-// =========================
-// INITIALIZE
-// =========================
+/* =========================================================
+   MIGRATE OLD LOCAL STORAGE APPS
+========================================================= */
+
+async function migrateOldApps() {
+
+  if (!db) return;
+
+
+  try {
+
+    const oldData =
+      localStorage.getItem(
+        OLD_STORAGE_KEY
+      );
+
+
+    if (!oldData) {
+
+      return;
+
+    }
+
+
+    const oldApps =
+      JSON.parse(oldData);
+
+
+    if (
+      !Array.isArray(oldApps) ||
+      !oldApps.length
+    ) {
+
+      return;
+
+    }
+
+
+    console.log(
+      "Old localStorage apps found:",
+      oldApps.length
+    );
+
+
+    let migratedCount =
+      0;
+
+
+    for (const oldApp of oldApps) {
+
+      const app =
+        normalizeApp(oldApp);
+
+
+      const id =
+        String(
+          app.id ||
+          (
+            "custom-" +
+            Date.now() +
+            "-" +
+            Math.random()
+              .toString(36)
+              .slice(2, 8)
+          )
+        );
+
+
+      const firebaseApp = {
+
+        ...app,
+
+        id,
+
+        createdAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp(),
+
+        updatedAt:
+          firebase.firestore
+            .FieldValue
+            .serverTimestamp()
+
+      };
+
+
+      await db
+        .collection("apps")
+        .doc(id)
+        .set(
+          firebaseApp,
+          {
+            merge: true
+          }
+        );
+
+
+      migratedCount++;
+
+    }
+
+
+    if (migratedCount > 0) {
+
+      alert(
+        `${migratedCount}টি পুরোনো App Firebase-এ সংরক্ষণ করা হয়েছে।`
+      );
+
+    }
+
+
+  } catch (error) {
+
+    console.error(
+      "Migration error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   GOOGLE ADMIN LOGIN
+========================================================= */
+
+async function adminLogin() {
+
+  if (!auth) {
+
+    alert(
+      "Firebase Authentication পাওয়া যাচ্ছে না।"
+    );
+
+    return;
+
+  }
+
+
+  try {
+
+    const provider =
+      new firebase.auth.GoogleAuthProvider();
+
+
+    const result =
+      await auth.signInWithPopup(
+        provider
+      );
+
+
+    const user =
+      result.user;
+
+
+    if (!user) {
+
+      return;
+
+    }
+
+
+    if (
+      user.email.toLowerCase() !==
+      ADMIN_EMAIL.toLowerCase()
+    ) {
+
+      await auth.signOut();
+
+
+      alert(
+        "এই Google account Admin হিসেবে অনুমোদিত নয়।"
+      );
+
+
+      return;
+
+    }
+
+
+    currentUser =
+      user;
+
+
+    updateLoginUI();
+
+
+    await migrateOldApps();
+
+
+    await loadApps();
+
+
+  } catch (error) {
+
+    console.error(
+      "Google login error:",
+      error
+    );
+
+
+    alert(
+      "Google Login করা যায়নি। Firebase Authentication পরীক্ষা করুন।"
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   ADMIN LOGOUT
+========================================================= */
+
+async function adminLogout() {
+
+  if (!auth) return;
+
+
+  try {
+
+    await auth.signOut();
+
+    currentUser =
+      null;
+
+
+    updateLoginUI();
+
+
+  } catch (error) {
+
+    console.error(
+      "Logout error:",
+      error
+    );
+
+  }
+
+}
+
+
+/* =========================================================
+   UPDATE LOGIN UI
+========================================================= */
+
+function updateLoginUI() {
+
+  const loginBtn =
+    document.getElementById(
+      "googleLoginBtn"
+    );
+
+
+  const logoutBtn =
+    document.getElementById(
+      "logoutBtn"
+    );
+
+
+  const adminPanel =
+    document.getElementById(
+      "adminPanel"
+    );
+
+
+  const loginBox =
+    document.getElementById(
+      "loginBox"
+    );
+
+
+  const userInfo =
+    document.getElementById(
+      "userInfo"
+    );
+
+
+  if (currentUser) {
+
+    if (loginBtn) {
+
+      loginBtn.style.display =
+        "none";
+
+    }
+
+
+    if (logoutBtn) {
+
+      logoutBtn.style.display =
+        "block";
+
+    }
+
+
+    if (adminPanel) {
+
+      adminPanel.style.display =
+        "block";
+
+    }
+
+
+    if (loginBox) {
+
+      loginBox.style.display =
+        "none";
+
+    }
+
+
+    if (userInfo) {
+
+      userInfo.textContent =
+        currentUser.email || "";
+
+    }
+
+  } else {
+
+    if (loginBtn) {
+
+      loginBtn.style.display =
+        "block";
+
+    }
+
+
+    if (logoutBtn) {
+
+      logoutBtn.style.display =
+        "none";
+
+    }
+
+
+    if (adminPanel) {
+
+      adminPanel.style.display =
+        "none";
+
+    }
+
+
+    if (loginBox) {
+
+      loginBox.style.display =
+        "block";
+
+    }
+
+
+    if (userInfo) {
+
+      userInfo.textContent =
+        "";
+
+    }
+
+  }
+
+}
+
+
+/* =========================================================
+   AUTH STATE
+========================================================= */
+
+function listenForAuth() {
+
+  if (!auth) {
+
+    console.error(
+      "Firebase Auth is not available."
+    );
+
+    return;
+
+  }
+
+
+  auth.onAuthStateChanged(
+    async user => {
+
+      if (!user) {
+
+        currentUser =
+          null;
+
+
+        updateLoginUI();
+
+
+        return;
+
+      }
+
+
+      if (
+        user.email.toLowerCase() !==
+        ADMIN_EMAIL.toLowerCase()
+      ) {
+
+        await auth.signOut();
+
+
+        currentUser =
+          null;
+
+
+        updateLoginUI();
+
+
+        return;
+
+      }
+
+
+      currentUser =
+        user;
+
+
+      updateLoginUI();
+
+
+      await migrateOldApps();
+
+
+      await loadApps();
+
+
+      listenForApps();
+
+    }
+  );
+
+}
+
+
+/* =========================================================
+   INITIALIZE ADMIN
+========================================================= */
 
 function initAdmin() {
 
-  loadApps();
+  updateLoginUI();
 
 
   const form =
     document.getElementById(
-      'appForm'
+      "appForm"
     );
 
 
   if (form) {
 
     form.addEventListener(
-      'submit',
+      "submit",
       handleSubmit
     );
+
   }
 
 
   const cancelBtn =
     document.getElementById(
-      'cancelBtn'
+      "cancelBtn"
     );
 
 
   if (cancelBtn) {
 
     cancelBtn.addEventListener(
-      'click',
+      "click",
       cancelEdit
     );
+
   }
 
 
-  // Inline button-এর জন্য
+  const loginBtn =
+    document.getElementById(
+      "googleLoginBtn"
+    );
+
+
+  if (loginBtn) {
+
+    loginBtn.addEventListener(
+      "click",
+      adminLogin
+    );
+
+  }
+
+
+  const logoutBtn =
+    document.getElementById(
+      "logoutBtn"
+    );
+
+
+  if (logoutBtn) {
+
+    logoutBtn.addEventListener(
+      "click",
+      adminLogout
+    );
+
+  }
+
+
   window.editApp =
     editApp;
 
+
   window.removeApp =
     removeApp;
+
 
   window.cancelEdit =
     cancelEdit;
 
 
+  window.adminLogin =
+    adminLogin;
+
+
+  window.adminLogout =
+    adminLogout;
+
+
   draw();
+
+
+  listenForAuth();
+
 }
 
 
-// =========================
-// START
-// =========================
+/* =========================================================
+   START
+========================================================= */
 
 if (
   document.readyState ===
-  'loading'
+  "loading"
 ) {
 
   document.addEventListener(
-    'DOMContentLoaded',
+    "DOMContentLoaded",
     initAdmin
   );
 
 } else {
 
   initAdmin();
-      }
+
+}
