@@ -1,15 +1,24 @@
 <!doctype html>
 <html lang="en">
+
 <head>
+
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
 
   <title>Fakhrul APK - Admin</title>
 
+
   <style>
+
     * {
       box-sizing: border-box;
     }
+
 
     body {
       margin: 0;
@@ -17,6 +26,7 @@
       background: #f5f7fb;
       color: #111827;
     }
+
 
     .topbar {
       background: #ffffff;
@@ -30,14 +40,17 @@
       z-index: 10;
     }
 
+
     .brand {
       font-size: 24px;
       font-weight: 800;
     }
 
+
     .brand span {
       color: #16a765;
     }
+
 
     .store-link {
       text-decoration: none;
@@ -45,12 +58,14 @@
       font-weight: 700;
     }
 
+
     .container {
       width: 100%;
       max-width: 900px;
       margin: 25px auto;
       padding: 0 16px;
     }
+
 
     .card {
       background: white;
@@ -60,24 +75,30 @@
       box-shadow: 0 5px 20px rgba(0,0,0,.06);
     }
 
-    h1, h2 {
+
+    h1,
+    h2 {
       margin-top: 0;
     }
+
 
     h1 {
       font-size: 28px;
     }
+
 
     h2 {
       font-size: 22px;
       margin-bottom: 20px;
     }
 
+
     label {
       display: block;
       font-weight: 700;
       margin: 16px 0 7px;
     }
+
 
     input,
     textarea,
@@ -90,10 +111,12 @@
       outline: none;
     }
 
+
     textarea {
       min-height: 130px;
       resize: vertical;
     }
+
 
     input:focus,
     textarea:focus,
@@ -101,12 +124,14 @@
       border-color: #16a765;
     }
 
+
     .buttons {
       display: flex;
       gap: 10px;
       margin-top: 22px;
       flex-wrap: wrap;
     }
+
 
     button {
       border: 0;
@@ -117,21 +142,61 @@
       cursor: pointer;
     }
 
+
     .add-btn {
       background: #16a765;
       color: white;
       width: 100%;
     }
 
+
     .update-btn {
       background: #2563eb;
       color: white;
     }
 
+
     .cancel-btn {
       background: #e5e7eb;
       color: #111827;
     }
+
+
+    .login-btn {
+      background: #16a765;
+      color: white;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+
+    .logout-btn {
+      background: #dc2626;
+      color: white;
+    }
+
+
+    .login-title {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+    }
+
+
+    .login-text {
+      color: #6b7280;
+      line-height: 1.6;
+      margin-bottom: 20px;
+    }
+
+
+    .user-info {
+      color: #16a765;
+      font-weight: 700;
+      margin: 10px 0 15px;
+      word-break: break-word;
+    }
+
 
     .app-item {
       border: 1px solid #e5e7eb;
@@ -141,16 +206,19 @@
       background: #fafafa;
     }
 
+
     .app-name {
       font-size: 19px;
       font-weight: 800;
       margin-bottom: 5px;
     }
 
+
     .app-info {
       color: #6b7280;
       margin-bottom: 12px;
     }
+
 
     .app-actions {
       display: flex;
@@ -158,15 +226,18 @@
       flex-wrap: wrap;
     }
 
+
     .edit-btn {
       background: #2563eb;
       color: white;
     }
 
+
     .delete-btn {
       background: #dc2626;
       color: white;
     }
+
 
     .empty {
       color: #6b7280;
@@ -174,160 +245,411 @@
       padding: 20px;
     }
 
+
     .editing {
       border: 2px solid #2563eb;
     }
 
+
+    .security-note {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      color: #166534;
+      border-radius: 12px;
+      padding: 12px;
+      margin-top: 15px;
+      line-height: 1.5;
+      font-size: 14px;
+    }
+
+
     @media (max-width: 600px) {
+
       .topbar {
         padding: 14px;
       }
 
+
       .brand {
         font-size: 20px;
       }
+
 
       .card {
         padding: 18px;
         border-radius: 16px;
       }
 
+
       h1 {
         font-size: 24px;
       }
+
     }
+
   </style>
+
 </head>
+
 
 <body>
 
+
+  <!-- =====================================================
+       HEADER
+       ===================================================== -->
+
   <header class="topbar">
+
     <div class="brand">
       Fakhrul <span>APK</span>
     </div>
 
-    <a class="store-link" href="index.html">
+
+    <a
+      class="store-link"
+      href="index.html"
+    >
       View store
     </a>
+
   </header>
+
+
 
   <main class="container">
 
-    <section class="card">
 
-      <h1 id="formTitle">Add App</h1>
+    <!-- =====================================================
+         LOGIN BOX
+         ===================================================== -->
 
-      <form id="appForm">
+    <section
+      class="card"
+      id="loginBox"
+    >
 
-        <label for="appName">App name</label>
-        <input
-          type="text"
-          id="appName"
-          placeholder="Example: Unik Mini Market"
-          required
-        >
+      <div class="login-title">
+        Admin Login
+      </div>
 
-        <label for="developer">Developer</label>
-        <input
-          type="text"
-          id="developer"
-          placeholder="Developer name"
-          required
-        >
 
-        <label for="category">Category</label>
-        <select id="category" required>
-          <option value="Tools">Tools</option>
-          <option value="Games">Games</option>
-          <option value="Education">Education</option>
-          <option value="Productivity">Productivity</option>
-          <option value="Entertainment">Entertainment</option>
-        </select>
+      <p class="login-text">
+        Fakhrul APK Store পরিচালনা করতে আপনার Admin Google Account দিয়ে Login করুন।
+      </p>
 
-        <label for="version">Version</label>
-        <input
-          type="text"
-          id="version"
-          placeholder="Example: 1.0.0"
-          required
-        >
 
-        <label for="size">Size</label>
-        <input
-          type="text"
-          id="size"
-          placeholder="Example: 8.5 MB"
-          required
-        >
+      <button
+        type="button"
+        class="login-btn"
+        id="googleLoginBtn"
+      >
+        Continue with Google
+      </button>
 
-        <label for="android">Android requirement</label>
-        <input
-          type="text"
-          id="android"
-          placeholder="Example: Android 5.1+"
-          required
-        >
 
-        <label for="iconUrl">Icon URL</label>
-        <input
-          type="url"
-          id="iconUrl"
-          placeholder="https://..."
-        >
+      <div class="security-note">
 
-        <label for="description">Description</label>
-        <textarea
-          id="description"
-          placeholder="Write app description..."
-          required
-        ></textarea>
+        শুধুমাত্র অনুমোদিত Admin Gmail
+        <strong>fakhrulctg106@gmail.com</strong>
+        দিয়ে Admin Panel ব্যবহার করা যাবে।
 
-        <label for="apkUrl">APK URL</label>
-        <input
-          type="url"
-          id="apkUrl"
-          placeholder="https://github.com/.../releases/latest/download/app.apk"
-          required
-        >
-
-        <div class="buttons">
-
-          <button
-            type="submit"
-            class="add-btn"
-            id="submitBtn"
-          >
-            Add app to store
-          </button>
-
-          <button
-            type="button"
-            class="cancel-btn"
-            id="cancelBtn"
-            style="display:none;"
-          >
-            Cancel edit
-          </button>
-
-        </div>
-
-      </form>
+      </div>
 
     </section>
 
 
-    <section class="card">
 
-      <h2>Current apps</h2>
+    <!-- =====================================================
+         ADMIN PANEL
+         ===================================================== -->
 
-      <div id="appsList"></div>
+    <div
+      id="adminPanel"
+      style="display:none;"
+    >
 
-    </section>
+
+      <!-- ===================================================
+           ADMIN ACCOUNT
+           =================================================== -->
+
+      <section class="card">
+
+        <h2>
+          Admin Account
+        </h2>
+
+
+        <div
+          class="user-info"
+          id="userInfo"
+        ></div>
+
+
+        <button
+          type="button"
+          class="logout-btn"
+          id="logoutBtn"
+        >
+          Logout
+        </button>
+
+      </section>
+
+
+
+      <!-- ===================================================
+           ADD / EDIT APP
+           =================================================== -->
+
+      <section class="card">
+
+        <h1 id="formTitle">
+          Add App
+        </h1>
+
+
+        <form id="appForm">
+
+
+          <!-- APP NAME -->
+
+          <label for="appName">
+            App name
+          </label>
+
+          <input
+            type="text"
+            id="appName"
+            placeholder="Example: Unik Mini Market"
+            required
+          >
+
+
+
+          <!-- DEVELOPER -->
+
+          <label for="developer">
+            Developer
+          </label>
+
+          <input
+            type="text"
+            id="developer"
+            placeholder="Developer name"
+            required
+          >
+
+
+
+          <!-- CATEGORY -->
+
+          <label for="category">
+            Category
+          </label>
+
+          <select
+            id="category"
+            required
+          >
+
+            <option value="Tools">
+              Tools
+            </option>
+
+            <option value="Games">
+              Games
+            </option>
+
+            <option value="Education">
+              Education
+            </option>
+
+            <option value="Productivity">
+              Productivity
+            </option>
+
+            <option value="Entertainment">
+              Entertainment
+            </option>
+
+          </select>
+
+
+
+          <!-- VERSION -->
+
+          <label for="version">
+            Version
+          </label>
+
+          <input
+            type="text"
+            id="version"
+            placeholder="Example: 1.0.0"
+            required
+          >
+
+
+
+          <!-- SIZE -->
+
+          <label for="size">
+            Size
+          </label>
+
+          <input
+            type="text"
+            id="size"
+            placeholder="Example: 8.5 MB"
+            required
+          >
+
+
+
+          <!-- ANDROID -->
+
+          <label for="android">
+            Android requirement
+          </label>
+
+          <input
+            type="text"
+            id="android"
+            placeholder="Example: Android 5.1+"
+            required
+          >
+
+
+
+          <!-- ICON -->
+
+          <label for="iconUrl">
+            Icon URL
+          </label>
+
+          <input
+            type="url"
+            id="iconUrl"
+            placeholder="https://..."
+          >
+
+
+
+          <!-- DESCRIPTION -->
+
+          <label for="description">
+            Description
+          </label>
+
+          <textarea
+            id="description"
+            placeholder="Write app description..."
+            required
+          ></textarea>
+
+
+
+          <!-- APK URL -->
+
+          <label for="apkUrl">
+            APK URL
+          </label>
+
+          <input
+            type="url"
+            id="apkUrl"
+            placeholder="https://github.com/.../releases/latest/download/app.apk"
+            required
+          >
+
+
+
+          <!-- BUTTONS -->
+
+          <div class="buttons">
+
+            <button
+              type="submit"
+              class="add-btn"
+              id="submitBtn"
+            >
+              Add app to store
+            </button>
+
+
+            <button
+              type="button"
+              class="cancel-btn"
+              id="cancelBtn"
+              style="display:none;"
+            >
+              Cancel edit
+            </button>
+
+          </div>
+
+
+        </form>
+
+      </section>
+
+
+
+      <!-- ===================================================
+           CURRENT APPS
+           =================================================== -->
+
+      <section class="card">
+
+        <h2>
+          Current apps
+        </h2>
+
+
+        <div id="appsList"></div>
+
+      </section>
+
+
+    </div>
+
 
   </main>
 
 
+
+  <!-- =====================================================
+       FIREBASE APP
+       ===================================================== -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+
+
+  <!-- =====================================================
+       FIREBASE AUTH
+       Google Login-এর জন্য
+       ===================================================== -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+
+
+  <!-- =====================================================
+       FIREBASE FIRESTORE
+       App data-এর জন্য
+       ===================================================== -->
+
+  <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
+
+
+  <!-- =====================================================
+       ADMIN JAVASCRIPT
+       ===================================================== -->
+
   <script src="admin.js"></script>
 
+
 </body>
+
 </html>
