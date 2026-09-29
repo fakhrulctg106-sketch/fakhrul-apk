@@ -1,15 +1,10 @@
 /* =========================================================
    FAKHRUL APK STORE
-   Firebase Firestore + Google Admin Login
-========================================================= */
-
-
-/* =========================================================
-   FIREBASE CONFIG
+   Firebase Firestore + Google Redirect Admin Login
 ========================================================= */
 
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyD1eUCBB6vkFIUPQnFtNM1Tgrywze_LMbQ",
+  apiKey: "AIzaSyD1eUCBB6bbFIUPQnFtNM1Tgrywze_LMbQ",
   authDomain: "fakhrul-apk-store.firebaseapp.com",
   databaseURL: "https://fakhrul-apk-store-default-rtdb.firebaseio.com",
   projectId: "fakhrul-apk-store",
@@ -18,24 +13,13 @@ const FIREBASE_CONFIG = {
   appId: "1:931246639573:web:bb957d8e3ed4f77dfa555c"
 };
 
-
-/* =========================================================
-   ADMIN EMAIL
-========================================================= */
-
 const ADMIN_EMAIL = "fakhrulctg106@gmail.com";
-
-
-/* =========================================================
-   OLD LOCAL STORAGE KEY
-========================================================= */
-
 const OLD_STORAGE_KEY = "fakhrulapk_apps";
 
 
-/* =========================================================
-   FIREBASE INITIALIZE
-========================================================= */
+// ---------------------------------------------------------
+// Firebase Initialize
+// ---------------------------------------------------------
 
 if (
   typeof firebase !== "undefined" &&
@@ -44,12 +28,10 @@ if (
   firebase.initializeApp(FIREBASE_CONFIG);
 }
 
-
 const db =
   typeof firebase !== "undefined"
     ? firebase.firestore()
     : null;
-
 
 const auth =
   typeof firebase !== "undefined"
@@ -57,17 +39,20 @@ const auth =
     : null;
 
 
+// ---------------------------------------------------------
+// Variables
+// ---------------------------------------------------------
+
 let custom = [];
 let editingId = null;
 let currentUser = null;
 
 
-/* =========================================================
-   ESCAPE HTML
-========================================================= */
+// ---------------------------------------------------------
+// Escape HTML
+// ---------------------------------------------------------
 
 function esc(s) {
-
   return String(s ?? "").replace(
     /[&<>"']/g,
     c => ({
@@ -78,50 +63,40 @@ function esc(s) {
       "'": "&#039;"
     }[c])
   );
-
 }
 
 
-/* =========================================================
-   GET FORM VALUE
-========================================================= */
+// ---------------------------------------------------------
+// Get / Set Form Values
+// ---------------------------------------------------------
 
 function getValue(id) {
+  const el = document.getElementById(id);
 
-  const el =
-    document.getElementById(id);
-
-  if (!el) return "";
+  if (!el) {
+    return "";
+  }
 
   return el.value.trim();
-
 }
 
 
-/* =========================================================
-   SET FORM VALUE
-========================================================= */
-
 function setValue(id, value) {
-
-  const el =
-    document.getElementById(id);
+  const el = document.getElementById(id);
 
   if (el) {
     el.value = value ?? "";
   }
-
 }
 
 
-/* =========================================================
-   NORMALIZE APP
-========================================================= */
+// ---------------------------------------------------------
+// Normalize App
+// ---------------------------------------------------------
 
 function normalizeApp(app) {
 
   return {
-
     ...app,
 
     iconUrl:
@@ -143,28 +118,23 @@ function normalizeApp(app) {
       app.apkUrl ||
       app.apk ||
       ""
-
   };
-
 }
 
 
-/* =========================================================
-   LOAD APPS FROM FIRESTORE
-========================================================= */
+// ---------------------------------------------------------
+// Load Apps From Firestore
+// ---------------------------------------------------------
 
 async function loadApps() {
 
   if (!db) {
-
     console.error(
       "Firebase Firestore is not available."
     );
 
     return;
-
   }
-
 
   try {
 
@@ -173,7 +143,6 @@ async function loadApps() {
         .collection("apps")
         .get();
 
-
     custom =
       snapshot.docs.map(doc => {
 
@@ -181,51 +150,44 @@ async function loadApps() {
           doc.data();
 
         return normalizeApp({
-
           ...data,
-
           id:
             data.id ||
             doc.id
-
         });
 
       });
-
 
     console.log(
       "Firebase apps loaded:",
       custom
     );
 
-
     draw();
 
   } catch (error) {
 
     console.error(
-      "Could not load apps from Firebase:",
+      "Could not load apps:",
       error
     );
-
 
     alert(
       "Firebase থেকে App লোড করা যায়নি। Firestore Rules পরীক্ষা করুন।"
     );
-
   }
-
 }
 
 
-/* =========================================================
-   REAL-TIME FIRESTORE LISTENER
-========================================================= */
+// ---------------------------------------------------------
+// Real-Time Firestore Listener
+// ---------------------------------------------------------
 
 function listenForApps() {
 
-  if (!db) return;
-
+  if (!db) {
+    return;
+  }
 
   db.collection("apps")
     .onSnapshot(
@@ -239,23 +201,18 @@ function listenForApps() {
               doc.data();
 
             return normalizeApp({
-
               ...data,
-
               id:
                 data.id ||
                 doc.id
-
             });
 
           });
-
 
         console.log(
           "Firebase apps updated:",
           custom
         );
-
 
         draw();
 
@@ -269,15 +226,13 @@ function listenForApps() {
         );
 
       }
-
     );
-
 }
 
 
-/* =========================================================
-   DRAW APP LIST
-========================================================= */
+// ---------------------------------------------------------
+// Draw App List
+// ---------------------------------------------------------
 
 function draw() {
 
@@ -286,9 +241,9 @@ function draw() {
       "appsList"
     );
 
-
-  if (!el) return;
-
+  if (!el) {
+    return;
+  }
 
   if (!custom.length) {
 
@@ -296,9 +251,7 @@ function draw() {
       '<p class="empty">No apps yet.</p>';
 
     return;
-
   }
-
 
   el.innerHTML =
     custom.map(a => `
@@ -313,22 +266,14 @@ function draw() {
           ${esc(a.name || "")}
         </div>
 
-
         <div class="app-info">
-
           ${esc(a.developer || "")}
-
           •
-
           ${esc(a.category || "")}
-
           •
-
           Version
           ${esc(a.version || "")}
-
         </div>
-
 
         <div class="app-actions">
 
@@ -339,7 +284,6 @@ function draw() {
           >
             Edit
           </button>
-
 
           <button
             type="button"
@@ -354,13 +298,12 @@ function draw() {
       </div>
 
     `).join("");
-
 }
 
 
-/* =========================================================
-   EDIT APP
-========================================================= */
+// ---------------------------------------------------------
+// Edit App
+// ---------------------------------------------------------
 
 function editApp(id) {
 
@@ -371,7 +314,6 @@ function editApp(id) {
         String(id)
     );
 
-
   if (!app) {
 
     alert(
@@ -379,9 +321,7 @@ function editApp(id) {
     );
 
     return;
-
   }
-
 
   editingId =
     app.id;
@@ -392,37 +332,30 @@ function editApp(id) {
     app.name
   );
 
-
   setValue(
     "developer",
     app.developer
   );
 
-
   setValue(
     "category",
-    app.category ||
-    "Tools"
+    app.category || "Tools"
   );
-
 
   setValue(
     "version",
     app.version
   );
 
-
   setValue(
     "size",
     app.size
   );
 
-
   setValue(
     "android",
     app.android
   );
-
 
   setValue(
     "iconUrl",
@@ -431,12 +364,10 @@ function editApp(id) {
     ""
   );
 
-
   setValue(
     "description",
     app.description
   );
-
 
   setValue(
     "apkUrl",
@@ -451,7 +382,6 @@ function editApp(id) {
       "formTitle"
     );
 
-
   if (title) {
 
     title.textContent =
@@ -465,17 +395,14 @@ function editApp(id) {
       "submitBtn"
     );
 
-
   if (submitBtn) {
 
     submitBtn.textContent =
       "Update App";
 
-
     submitBtn.classList.remove(
       "add-btn"
     );
-
 
     submitBtn.classList.add(
       "update-btn"
@@ -489,7 +416,6 @@ function editApp(id) {
       "cancelBtn"
     );
 
-
   if (cancelBtn) {
 
     cancelBtn.style.display =
@@ -502,31 +428,25 @@ function editApp(id) {
 
 
   window.scrollTo({
-
     top: 0,
-
     behavior: "smooth"
-
   });
-
 }
 
 
-/* =========================================================
-   CANCEL EDIT
-========================================================= */
+// ---------------------------------------------------------
+// Cancel Edit
+// ---------------------------------------------------------
 
 function cancelEdit() {
 
-  editingId =
-    null;
+  editingId = null;
 
 
   const form =
     document.getElementById(
       "appForm"
     );
-
 
   if (form) {
 
@@ -539,7 +459,6 @@ function cancelEdit() {
     document.getElementById(
       "formTitle"
     );
-
 
   if (title) {
 
@@ -554,17 +473,14 @@ function cancelEdit() {
       "submitBtn"
     );
 
-
   if (submitBtn) {
 
     submitBtn.textContent =
       "Add app to store";
 
-
     submitBtn.classList.remove(
       "update-btn"
     );
-
 
     submitBtn.classList.add(
       "add-btn"
@@ -578,7 +494,6 @@ function cancelEdit() {
       "cancelBtn"
     );
 
-
   if (cancelBtn) {
 
     cancelBtn.style.display =
@@ -588,13 +503,12 @@ function cancelEdit() {
 
 
   draw();
-
 }
 
 
-/* =========================================================
-   DELETE APP
-========================================================= */
+// ---------------------------------------------------------
+// Delete App
+// ---------------------------------------------------------
 
 async function removeApp(id) {
 
@@ -605,8 +519,9 @@ async function removeApp(id) {
         String(id)
     );
 
-
-  if (!app) return;
+  if (!app) {
+    return;
+  }
 
 
   if (
@@ -653,7 +568,6 @@ async function removeApp(id) {
       "App deleted successfully."
     );
 
-
   } catch (error) {
 
     console.error(
@@ -661,19 +575,16 @@ async function removeApp(id) {
       error
     );
 
-
     alert(
       "App delete করা যায়নি। Firebase Rules পরীক্ষা করুন।"
     );
-
   }
-
 }
 
 
-/* =========================================================
-   ADD / UPDATE APP
-========================================================= */
+// ---------------------------------------------------------
+// Add / Update App
+// ---------------------------------------------------------
 
 async function handleSubmit(e) {
 
@@ -702,9 +613,9 @@ async function handleSubmit(e) {
   }
 
 
-  /* =====================================================
-     UPDATE EXISTING APP
-  ===================================================== */
+  // -------------------------------------------------------
+  // UPDATE
+  // -------------------------------------------------------
 
   if (editingId) {
 
@@ -729,7 +640,6 @@ async function handleSubmit(e) {
 
     const iconInput =
       getValue("iconUrl");
-
 
     const apkInput =
       getValue("apkUrl");
@@ -820,14 +730,12 @@ async function handleSubmit(e) {
 
       cancelEdit();
 
-
     } catch (error) {
 
       console.error(
         "Update error:",
         error
       );
-
 
       alert(
         "App update করা যায়নি। Firebase Rules পরীক্ষা করুন।"
@@ -841,13 +749,12 @@ async function handleSubmit(e) {
   }
 
 
-  /* =====================================================
-     ADD NEW APP
-  ===================================================== */
+  // -------------------------------------------------------
+  // ADD NEW APP
+  // -------------------------------------------------------
 
   const iconInput =
     getValue("iconUrl");
-
 
   const apkInput =
     getValue("apkUrl");
@@ -923,7 +830,6 @@ async function handleSubmit(e) {
         "appForm"
       );
 
-
     if (form) {
 
       form.reset();
@@ -938,7 +844,6 @@ async function handleSubmit(e) {
 
     draw();
 
-
   } catch (error) {
 
     console.error(
@@ -946,23 +851,23 @@ async function handleSubmit(e) {
       error
     );
 
-
     alert(
       "App যোগ করা যায়নি। Firebase Rules এবং Admin Login পরীক্ষা করুন।"
     );
 
   }
-
 }
 
 
-/* =========================================================
-   MIGRATE OLD LOCAL STORAGE APPS
-========================================================= */
+// ---------------------------------------------------------
+// Migrate Old LocalStorage Apps
+// ---------------------------------------------------------
 
 async function migrateOldApps() {
 
-  if (!db) return;
+  if (!db) {
+    return;
+  }
 
 
   try {
@@ -974,9 +879,7 @@ async function migrateOldApps() {
 
 
     if (!oldData) {
-
       return;
-
     }
 
 
@@ -1000,14 +903,18 @@ async function migrateOldApps() {
     );
 
 
-    let migratedCount =
-      0;
+    let migratedCount = 0;
 
 
-    for (const oldApp of oldApps) {
+    for (
+      const oldApp
+      of oldApps
+    ) {
 
       const app =
-        normalizeApp(oldApp);
+        normalizeApp(
+          oldApp
+        );
 
 
       const id =
@@ -1059,14 +966,15 @@ async function migrateOldApps() {
     }
 
 
-    if (migratedCount > 0) {
+    if (
+      migratedCount > 0
+    ) {
 
       alert(
         `${migratedCount}টি পুরোনো App Firebase-এ সংরক্ষণ করা হয়েছে।`
       );
 
     }
-
 
   } catch (error) {
 
@@ -1076,13 +984,12 @@ async function migrateOldApps() {
     );
 
   }
-
 }
 
 
-/* =========================================================
-   GOOGLE ADMIN LOGIN
-========================================================= */
+// ---------------------------------------------------------
+// GOOGLE LOGIN — MOBILE REDIRECT
+// ---------------------------------------------------------
 
 async function adminLogin() {
 
@@ -1103,29 +1010,85 @@ async function adminLogin() {
       new firebase.auth.GoogleAuthProvider();
 
 
+    provider.setCustomParameters({
+      prompt: "select_account"
+    });
+
+
+    /*
+      Mobile browser-এর জন্য popup-এর বদলে
+      redirect login ব্যবহার করা হচ্ছে।
+    */
+
+    await auth.signInWithRedirect(
+      provider
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Google redirect login error:",
+      error
+    );
+
+    alert(
+      "Google Login শুরু করা যায়নি। আবার চেষ্টা করুন।"
+    );
+
+  }
+}
+
+
+// ---------------------------------------------------------
+// HANDLE GOOGLE REDIRECT RESULT
+// ---------------------------------------------------------
+
+async function handleRedirectResult() {
+
+  if (!auth) {
+    return;
+  }
+
+
+  try {
+
     const result =
-      await auth.signInWithPopup(
-        provider
-      );
+      await auth.getRedirectResult();
 
 
-    const user =
-      result.user;
-
-
-    if (!user) {
+    if (
+      !result ||
+      !result.user
+    ) {
 
       return;
 
     }
 
 
+    const user =
+      result.user;
+
+
+    console.log(
+      "Google login result:",
+      user.email
+    );
+
+
     if (
+      !user.email ||
       user.email.toLowerCase() !==
       ADMIN_EMAIL.toLowerCase()
     ) {
 
       await auth.signOut();
+
+
+      currentUser = null;
+
+
+      updateLoginUI();
 
 
       alert(
@@ -1151,35 +1114,75 @@ async function adminLogin() {
     await loadApps();
 
 
+    listenForApps();
+
+
   } catch (error) {
 
     console.error(
-      "Google login error:",
+      "Redirect result error:",
       error
     );
 
 
-    alert(
-      "Google Login করা যায়নি। Firebase Authentication পরীক্ষা করুন।"
-    );
+    /*
+      User-friendly error messages
+    */
+
+    if (
+      error.code ===
+      "auth/unauthorized-domain"
+    ) {
+
+      alert(
+        "Firebase-এ এই website domain অনুমোদিত নয়। Authorized Domains পরীক্ষা করুন।"
+      );
+
+    } else if (
+      error.code ===
+      "auth/popup-blocked"
+    ) {
+
+      alert(
+        "Google Login blocked হয়েছে। আবার Login চাপুন।"
+      );
+
+    } else if (
+      error.code ===
+      "auth/operation-not-allowed"
+    ) {
+
+      alert(
+        "Firebase Authentication-এ Google Login চালু নেই।"
+      );
+
+    } else {
+
+      alert(
+        "Google Login সম্পন্ন হয়নি। Browser Console-এ Error দেখুন।"
+      );
+
+    }
 
   }
-
 }
 
 
-/* =========================================================
-   ADMIN LOGOUT
-========================================================= */
+// ---------------------------------------------------------
+// LOGOUT
+// ---------------------------------------------------------
 
 async function adminLogout() {
 
-  if (!auth) return;
+  if (!auth) {
+    return;
+  }
 
 
   try {
 
     await auth.signOut();
+
 
     currentUser =
       null;
@@ -1196,13 +1199,12 @@ async function adminLogout() {
     );
 
   }
-
 }
 
 
-/* =========================================================
-   UPDATE LOGIN UI
-========================================================= */
+// ---------------------------------------------------------
+// Update Login UI
+// ---------------------------------------------------------
 
 function updateLoginUI() {
 
@@ -1273,7 +1275,8 @@ function updateLoginUI() {
     if (userInfo) {
 
       userInfo.textContent =
-        currentUser.email || "";
+        currentUser.email ||
+        "";
 
     }
 
@@ -1319,13 +1322,12 @@ function updateLoginUI() {
     }
 
   }
-
 }
 
 
-/* =========================================================
-   AUTH STATE
-========================================================= */
+// ---------------------------------------------------------
+// Firebase Auth State
+// ---------------------------------------------------------
 
 function listenForAuth() {
 
@@ -1348,9 +1350,7 @@ function listenForAuth() {
         currentUser =
           null;
 
-
         updateLoginUI();
-
 
         return;
 
@@ -1358,6 +1358,7 @@ function listenForAuth() {
 
 
       if (
+        !user.email ||
         user.email.toLowerCase() !==
         ADMIN_EMAIL.toLowerCase()
       ) {
@@ -1394,13 +1395,12 @@ function listenForAuth() {
 
     }
   );
-
 }
 
 
-/* =========================================================
-   INITIALIZE ADMIN
-========================================================= */
+// ---------------------------------------------------------
+// Initialize Admin
+// ---------------------------------------------------------
 
 function initAdmin() {
 
@@ -1474,18 +1474,14 @@ function initAdmin() {
   window.editApp =
     editApp;
 
-
   window.removeApp =
     removeApp;
-
 
   window.cancelEdit =
     cancelEdit;
 
-
   window.adminLogin =
     adminLogin;
-
 
   window.adminLogout =
     adminLogout;
@@ -1494,27 +1490,5 @@ function initAdmin() {
   draw();
 
 
-  listenForAuth();
-
-}
-
-
-/* =========================================================
-   START
-========================================================= */
-
-if (
-  document.readyState ===
-  "loading"
-) {
-
-  document.addEventListener(
-    "DOMContentLoaded",
-    initAdmin
-  );
-
-} else {
-
-  initAdmin();
-
-}
+  /*
+    প্রথমে Google redire
